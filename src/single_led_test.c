@@ -5,7 +5,8 @@
 
 #include <util/delay.h>
 
-#define PINCOUNT 10 
+#define PINCOUNT 10
+
 
 typedef struct {
     uint8_t pin;
@@ -32,6 +33,92 @@ void reset_pin(pinconf_t *gpio)
 }
 
 
+void reset_all(void)
+{
+    uint8_t x;
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        reset_pin(outpins + x);
+    }
+}
+
+
+void drop_line_fill(uint8_t level)
+{
+    uint16_t time = 133;
+
+    set_pin(outpins + 3);
+    set_pin(outpins + 4);
+    _delay_ms(time);
+    if(level == 4)
+        return;
+    reset_pin(outpins + 3);
+    reset_pin(outpins + 4);
+    set_pin(outpins + 2);
+    set_pin(outpins + 5);
+    _delay_ms(time);
+    if(level == 3)
+        return;
+    reset_pin(outpins + 2);
+    reset_pin(outpins + 5);
+    set_pin(outpins + 1);
+    set_pin(outpins + 6);
+    _delay_ms(time);
+    if(level == 2)
+        return;
+    reset_pin(outpins + 1);
+    reset_pin(outpins + 6);
+    set_pin(outpins + 0);
+    set_pin(outpins + 7);
+    _delay_ms(time);
+    if(level == 1)
+        return;
+    reset_pin(outpins + 0);
+    reset_pin(outpins + 7);
+    set_pin(outpins + 8);
+    set_pin(outpins + 9);
+}
+
+
+void drop_line_drain(uint8_t level)
+{
+    uint16_t time = 166;
+
+    switch(level)
+    {
+        case 4:
+            reset_pin(outpins + 3);
+            reset_pin(outpins + 4);
+            set_pin(outpins + 2);
+            set_pin(outpins + 5);
+            _delay_ms(time);
+        case 3:
+            reset_pin(outpins + 2);
+            reset_pin(outpins + 5);
+            set_pin(outpins + 1);
+            set_pin(outpins + 6);
+            _delay_ms(time);
+        case 2:
+            reset_pin(outpins + 1);
+            reset_pin(outpins + 6);
+            set_pin(outpins + 0);
+            set_pin(outpins + 7);
+            _delay_ms(time);
+        case 1:
+            reset_pin(outpins + 0);
+            reset_pin(outpins + 7);
+            set_pin(outpins + 8);
+            set_pin(outpins + 9);
+            _delay_ms(time);
+        case 0:
+        default:
+            reset_pin(outpins + 8);
+            reset_pin(outpins + 9);
+            _delay_ms(time);
+    }
+}
+
 void test_output(void)
 {
     uint8_t x;
@@ -57,18 +144,17 @@ void test_output(void)
 }
 
 
-void init_output(pinconf_t *outpin, 
+void init_output(pinconf_t *outpin,
         uint8_t gpio,
         volatile uint8_t *port,
-        uint8_t is_set,
         volatile uint8_t *ddreg)
 {
     outpin->pin = gpio;
     outpin->port = port;
-    outpin->state = is_set;
+    outpin->state = 0;
     outpin->dir_reg = ddreg;
 
-    *ddreg |= (1 << gpio); /* configure gpio as output */    
+    *ddreg |= (1 << gpio); /* configure gpio as output */
 }
 
 
@@ -78,16 +164,16 @@ int main(void)
 
     test_output();
 
-    init_output(&outpins[0], PB3, &PORTB, 0, &DDRB);
-    init_output(&outpins[1], PB2, &PORTB, 0, &DDRB);
-    init_output(&outpins[2], PB1, &PORTB, 0, &DDRB);
-    init_output(&outpins[3], PD7, &PORTD, 0, &DDRD);
-    init_output(&outpins[4], PD6, &PORTD, 0, &DDRD);
-    init_output(&outpins[5], PD4, &PORTD, 0, &DDRD);
-    init_output(&outpins[6], PD3, &PORTD, 0, &DDRD);
-    init_output(&outpins[7], PD2, &PORTD, 0, &DDRD);
-    init_output(&outpins[8], PD5, &PORTD, 0, &DDRD);
-    init_output(&outpins[9], PB0, &PORTB, 0, &DDRB);
+    init_output(&outpins[0], PB3, &PORTB, &DDRB);
+    init_output(&outpins[1], PB2, &PORTB, &DDRB);
+    init_output(&outpins[2], PB1, &PORTB, &DDRB);
+    init_output(&outpins[3], PD7, &PORTD, &DDRD);
+    init_output(&outpins[4], PD6, &PORTD, &DDRD);
+    init_output(&outpins[5], PD4, &PORTD, &DDRD);
+    init_output(&outpins[6], PD3, &PORTD, &DDRD);
+    init_output(&outpins[7], PD2, &PORTD, &DDRD);
+    init_output(&outpins[8], PD5, &PORTD, &DDRD);
+    init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
     while(1)
     {
@@ -109,6 +195,21 @@ int main(void)
             reset_pin(outpins + x);
             _delay_ms(66);
         }
+
+        _delay_ms(1000);
+
+        {
+            reset_all();
+            for(x = 0; x < PINCOUNT/2; x++)
+            {
+                drop_line_fill(x);
+            }
+            for(x = 0; x < PINCOUNT/2; x++)
+            {
+                drop_line_drain(x);
+            }
+        }
+
         _delay_ms(1000);
     }
 
