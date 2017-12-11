@@ -1,0 +1,49 @@
+/*********************************************
+* vim: set sw=8 ts=8 si :
+* Author: Guido Socher, Copyright: GPL 
+* This program is to test the led connected to
+* PC5. 
+* See http://linuxfocus.org/English/November2004/
+* for details.
+* Chip type           : ATMEGA8
+* Clock frequency     : Internal clock 1 Mhz (factory default)
+*********************************************/
+#include <avr/io.h>
+
+void delay_ms(unsigned short ms)
+/* delay for a minimum of <ms> */
+/* with a 1Mhz clock, the resolution is 1 ms */
+{
+        // Note: this function is faulty, see avrm8ledtest-0.2.tar.gz for
+        //       updated code.
+        unsigned short outer1, outer2;
+             outer1 = 50; 
+
+            while (outer1) {
+                outer2 = 1000;
+                while (outer2) {
+                        while ( ms ) ms--;
+                        outer2--;
+                }
+                outer1--;
+        }
+}
+
+
+int main(void)
+{
+    /* enable PC0 - PC3 as output */
+    DDRC |= (1 << PC0 | 1 << PC1 | 1 << PC2 | 1 << PC3);
+    
+    /* enable PD0 - PD3 as input */
+    DDRD &= ~(1 << PD0 | 1 << PD1 | 1 << PD2 | 1 << PD3);
+
+    /* PC5 is 5 (see file include/avr/iom8.h) and _BV(PC5) is 00100000 */
+    while (1) 
+    {
+        PORTC = PIND;
+    }
+
+    return 0;
+}
+
