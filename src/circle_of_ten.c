@@ -5,7 +5,6 @@
 
 #include <util/delay.h>
 
-
 #define DELAY_MAX 127
 
 #define PINCOUNT 10
@@ -21,6 +20,7 @@ typedef struct {
 
 static pinconf_t outpins[PINCOUNT];
 
+
 void my_delay(uint8_t ms)
 {
     while(ms)
@@ -30,10 +30,6 @@ void my_delay(uint8_t ms)
     }
 }
 
-uint8_t opposite_of(uint8_t x)
-{
-    return (x > 4 ? x - 5 : x + 5);
-}
 
 void set_pin(pinconf_t *gpio)
 {
@@ -67,6 +63,47 @@ void reset_all(void)
     for(x = 0; x < PINCOUNT; x++)
     {
         reset_pin(outpins + x);
+    }
+}
+
+
+uint8_t opposite_of(uint8_t x)
+{
+    return (x > 4 ? x - 5 : x + 5);
+}
+
+
+void increase_circular_ptr(pinconf_t **led_to_set)
+{
+    if(*led_to_set < (outpins + PINCOUNT))
+        (*led_to_set)++;
+    else
+        *led_to_set = outpins;
+}
+
+
+void set_range(uint8_t start, uint8_t count)
+{
+    uint8_t x;
+    pinconf_t *led_to_set = outpins + start;
+
+    for(x = 0; x < count; x++)
+    {
+        set_pin(led_to_set);
+        increase_circular_ptr(&led_to_set);
+    }
+}
+
+
+void reset_range(uint8_t start, uint8_t count)
+{
+    uint8_t x;
+    pinconf_t *led_to_set = outpins + start;
+
+    for(x = 0; x < count; x++)
+    {
+        reset_pin(led_to_set);
+        increase_circular_ptr(&led_to_set);
     }
 }
 
@@ -204,6 +241,7 @@ int main(void)
 
     while(1)
     {
+        /* program 1 */
         {
             for(x = 0; x < PINCOUNT; x++)
             {
@@ -230,7 +268,10 @@ int main(void)
                 _delay_ms(66);
                 reset_pin(outpins + x);
             }
+        }
 
+        /* program 2 */
+        {
             y = 66;
             while(y)
             {
@@ -257,6 +298,33 @@ int main(void)
 
         _delay_ms(300);
 
+        /* program 3 */
+        {
+            for(y = 1; y < PINCOUNT; y++)
+            {
+                for(x = 0; x < PINCOUNT; x++)
+                {
+                    reset_range(x, y);
+                    _delay_ms(44);
+                    set_range(x, y);
+                }
+                for(x = PINCOUNT; x > 0; x--)
+                {
+                    reset_range(x, y);
+                    _delay_ms(99);
+                    set_range(x, y);
+                }
+            }
+            reset_all();
+            _delay_ms(300);
+            set_all();
+            _delay_ms(300);
+            reset_all();
+        }
+
+        _delay_ms(300);
+
+        /* program 4 */
         {
             reset_all();
             for(x = 0; x < PINCOUNT/2; x++)
