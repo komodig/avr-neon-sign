@@ -308,11 +308,23 @@ int main(void)
                     _delay_ms(44);
                     set_range(x, y);
                 }
-                for(x = PINCOUNT; x > 0; x--)
+                if(y < 4 || y > 6)
                 {
-                    reset_range(x, y);
-                    _delay_ms(99);
-                    set_range(x, y);
+                    for(x = PINCOUNT; x > 0; x--)
+                    {
+                        reset_range(x, y);
+                        _delay_ms(99);
+                        set_range(x, y);
+                    }
+                }
+                else
+                {
+                    for(x = 0; x < PINCOUNT; x++)
+                    {
+                        reset_range(x, y);
+                        _delay_ms(44);
+                        set_range(x, y);
+                    }
                 }
             }
             reset_all();
