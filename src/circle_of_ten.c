@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define F_CPU 12000000UL
 
@@ -308,7 +309,7 @@ int main(void)
                     _delay_ms(44);
                     set_range(x, y);
                 }
-                if(y < 4 || y > 6)
+                if(y < 5)
                 {
                     for(x = PINCOUNT; x > 0; x--)
                     {
@@ -337,6 +338,20 @@ int main(void)
         _delay_ms(300);
 
         /* program 4 */
+        {
+            for(x = 0 ; x < 64; x++)
+            {
+                srand(x);
+                y = rand() % 10;
+                set_pin(outpins + y);
+                _delay_ms(44);
+                if(x % 4 == 0)
+                {
+                    reset_all();
+                }
+            }
+        }
+        /* program 5 */
         {
             reset_all();
             for(x = 0; x < PINCOUNT/2; x++)
