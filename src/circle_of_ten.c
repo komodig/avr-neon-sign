@@ -223,6 +223,32 @@ void init_output(pinconf_t *outpin,
 }
 
 
+/* Here is an example code of 8-bit Timer2 Fast PWM Mode (8KHz) at 16MHz clock */
+void config_pwm(uint16_t ocra2_val)
+{
+    /* PB3 as output */
+    DDRB |= (1 << PB3);
+    /* e.g. set PWM for 50% duty cycle by ocra2_val = 128 */
+    OCR2A = ocra2_val & 0xFF;
+    OCR2B = (ocra2_val >> 8) & 0xFF;
+     /* set non-inverting mode */
+    TCCR2A |= (1 << COM2A1);
+    /* set fast PWM Mode */
+    TCCR2A |= (1 << WGM21) | (1 << WGM20);
+    /* set prescaler to 8 and starts PWM */
+    TCCR2B |= (1 << CS21);
+}
+
+
+void disable_pwm(void)
+{
+        TCCR2A = 0;
+        TCCR2B = 0;
+        OCR2A = 0;
+        OCR2B = 0;
+}
+
+
 int main(void)
 {
     uint8_t x, y;
@@ -306,7 +332,7 @@ int main(void)
                 for(x = 0; x < PINCOUNT; x++)
                 {
                     reset_range(x, y);
-                    _delay_ms(44);
+                    _delay_ms(33);
                     set_range(x, y);
                 }
                 if(y < 5)
@@ -314,7 +340,7 @@ int main(void)
                     for(x = PINCOUNT; x > 0; x--)
                     {
                         reset_range(x, y);
-                        _delay_ms(99);
+                        _delay_ms(33);
                         set_range(x, y);
                     }
                 }
@@ -323,7 +349,7 @@ int main(void)
                     for(x = 0; x < PINCOUNT; x++)
                     {
                         reset_range(x, y);
-                        _delay_ms(44);
+                        _delay_ms(33);
                         set_range(x, y);
                     }
                 }
@@ -365,6 +391,23 @@ int main(void)
         }
 
         _delay_ms(300);
+
+        /* test PWM */
+        for(y = 0; y < 3; y++)
+        {
+            for(x = 0; x < 128; x++)
+            {
+                config_pwm(x);
+                _delay_ms(10);
+            }
+            for(x = 128; x > 0; x--)
+            {
+                config_pwm(x);
+                _delay_ms(10);
+            }
+        }
+        _delay_ms(300);
+        disable_pwm();
     }
 
     return 0;
