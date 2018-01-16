@@ -1,48 +1,70 @@
+#include <avr/io.h>
 #include <avr/interrupt.h>
+#include "led_circle.h"
 #include "timer.h"
-#include "leds.h"
 
-static uint32_t counter;
+extern pinconf_t outpins[PINCOUNT];
+static uint8_t state;
 
 /* signal handler for timer interrupt TOV0 */
 ISR(TIMER0_OVF_vect)
 {
-    counter++;
-    if(counter > 1125)  /* ca. 5 seconds */
+    if(state == 0)
     {
-        leds_on();
+        set_all(outpins);
+        state = 1;
+        timer_restart(8);
+    }
+    else
+    {
+        reset_all(outpins);
+        state = 0;
+        timer_restart(256);
     }
 }
 
 void timer_init(void)
 {
     /*enable timer overflow interrupt*/
-    TIMSK |= (1 << TOV0);
+    TIMSK0 |= (1 << TOIE0);
     /*set timer counter initial value*/
     TCNT0=0x00;
+
+    sei();
 }
 
-void timer_start(void)
+void timer_start(uint16_t prescaler)
 {
-    counter = 0;
-    /* start timer with prescaler 256 (225 Overflows/second)*/
-    TCCR0 |= (1 << CS02);
+    switch(prescaler)
+    {
+        case 0: 
+            TCCR0B = 0x00;
+            break;
+        case 8:
+            TCCR0B |= (1 << CS01);
+            break;
+        case 64:
+            TCCR0B |= (1 << CS01 | 1 << CS00);
+            break;
+        default:
+        case 256:
+            TCCR0B |= (1 << CS02);
+            break;
+        case 1024:
+            TCCR0B |= (1 << CS02 | 1 << CS00);
+            break;
+    }
 }
 
 void timer_stop(void)
 {
-    TCCR0 &= ~(1 << CS00 | 1 << CS01 | 1 << CS02);
+    TCCR0B &= ~(1 << CS00 | 1 << CS01 | 1 << CS02);
     TCNT0=0x00;
 }
 
-void timer_restart(void)
+void timer_restart(uint16_t prescaler)
 {
     timer_stop();
-    timer_start();
-}
-
-uint32_t get_count(void)
-{
-    return counter;
+    timer_start(prescaler);
 }
 

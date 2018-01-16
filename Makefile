@@ -8,10 +8,11 @@ BUILD_DIR = $(shell pwd)/obj
 SRC_DIR = $(shell pwd)/src
 DOXYGEN_DIR = $(shell grep OUTPUT_DIRECTORY Doxyfile | sed -e 's/^.*=\ *//g')
 
-OBJS = ${BUILD_DIR}/${fname}.o #\
+OBJS = ${BUILD_DIR}/${fname}.o \
+       ${BUILD_DIR}/gpio.o \
+       ${BUILD_DIR}/timer.o \
+       ${BUILD_DIR}/led_circle.o
 #       ${BUILD_DIR}/usart.o
-#       ${BUILD_DIR}/timer.o \
-#       ${BUILD_DIR}/leds.o \
 #
 # Optimization level, can be [0, 1, 2, 3, s].
 # 0 = turn off optimization. s = optimize for size.

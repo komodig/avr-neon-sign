@@ -5,21 +5,13 @@
 #define F_CPU 12000000UL
 
 #include <util/delay.h>
+#include "gpio.h"
+#include "led_circle.h"
 
 #define DELAY_MAX 127
 
-#define PINCOUNT 10
 
-
-typedef struct {
-    uint8_t pin;
-    volatile uint8_t *port;
-    uint8_t state;
-    volatile uint8_t *dir_reg;
-} pinconf_t;
-
-
-static pinconf_t outpins[PINCOUNT];
+pinconf_t outpins[PINCOUNT];
 
 
 void my_delay(uint8_t ms)
@@ -28,83 +20,6 @@ void my_delay(uint8_t ms)
     {
         _delay_ms(1);
         --ms;
-    }
-}
-
-
-void set_pin(pinconf_t *gpio)
-{
-    *gpio->port |= (1 << gpio->pin); /* set single LED */
-    gpio->state = 1;
-}
-
-
-void reset_pin(pinconf_t *gpio)
-{
-    *gpio->port &= ~(1 << gpio->pin);
-    gpio->state = 0;
-}
-
-
-void set_all(void)
-{
-    uint8_t x;
-
-    for(x = 0; x < PINCOUNT; x++)
-    {
-        set_pin(outpins + x);
-    }
-}
-
-
-void reset_all(void)
-{
-    uint8_t x;
-
-    for(x = 0; x < PINCOUNT; x++)
-    {
-        reset_pin(outpins + x);
-    }
-}
-
-
-uint8_t opposite_of(uint8_t x)
-{
-    return (x > 4 ? x - 5 : x + 5);
-}
-
-
-void increase_circular_ptr(pinconf_t **led_to_set)
-{
-    if(*led_to_set < (outpins + PINCOUNT))
-        (*led_to_set)++;
-    else
-        *led_to_set = outpins;
-}
-
-
-void set_range(uint8_t start, uint8_t count)
-{
-    uint8_t x;
-    pinconf_t *led_to_set = outpins + start;
-
-    for(x = 0; x < count; x++)
-    {
-        set_pin(led_to_set);
-        increase_circular_ptr(&led_to_set);
-    }
-}
-
-
-void reset_range(uint8_t start, uint8_t count)
-{
-    uint8_t x;
-    pinconf_t *led_to_set = outpins + start;
-
-    for(x = 0; x < count; x++)
-    {
-        reset_pin(led_to_set);
-        increase_circular_ptr(&led_to_set);
     }
 }
 
@@ -209,20 +124,6 @@ void test_output(void)
 }
 
 
-void init_output(pinconf_t *outpin,
-        uint8_t gpio,
-        volatile uint8_t *port,
-        volatile uint8_t *ddreg)
-{
-    outpin->pin = gpio;
-    outpin->port = port;
-    outpin->state = 0;
-    outpin->dir_reg = ddreg;
-
-    *ddreg |= (1 << gpio); /* configure gpio as output */
-}
-
-
 /* Here is an example code of 8-bit Timer2 Fast PWM Mode (8KHz) at 16MHz clock */
 void config_pwm(uint16_t ocra2_val)
 {
@@ -249,6 +150,162 @@ void disable_pwm(void)
 }
 
 
+void program1(void)
+{
+    uint8_t x, y;
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        set_pin(outpins + x);
+        _delay_ms(66);
+    }
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        reset_pin(outpins + x);
+        _delay_ms(66);
+        set_pin(outpins + x);
+    }
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        reset_pin(outpins + x);
+        _delay_ms(66);
+    }
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        set_pin(outpins + x);
+        _delay_ms(66);
+        reset_pin(outpins + x);
+    }
+}
+
+
+void program2(void)
+{
+    uint8_t x, y;
+
+    y = 66;
+    while(y)
+    {
+        for(x = 0; x < PINCOUNT; x++)
+        {
+            set_pin(outpins + x);
+            set_pin(outpins + opposite_of(x));
+            my_delay(y);
+            reset_pin(outpins + x);
+            reset_pin(outpins + opposite_of(x));
+        }
+        y -= 6;
+    }
+    set_all(outpins);
+    _delay_ms(300);
+    reset_all(outpins);
+    _delay_ms(300);
+    set_all(outpins);
+    _delay_ms(300);
+    reset_all(outpins);
+    _delay_ms(300);
+    set_all(outpins);
+}
+
+
+void program3(void)
+{
+    uint8_t x, y;
+
+    for(y = 1; y < PINCOUNT; y++)
+    {
+        for(x = 0; x < PINCOUNT; x++)
+        {
+            reset_range(x, y, outpins);
+            _delay_ms(33);
+            set_range(x, y, outpins);
+        }
+        if(y < 5)
+        {
+            for(x = PINCOUNT; x > 0; x--)
+            {
+                reset_range(x, y, outpins);
+                _delay_ms(33);
+                set_range(x, y, outpins);
+            }
+        }
+        else
+        {
+            for(x = 0; x < PINCOUNT; x++)
+            {
+                reset_range(x, y, outpins);
+                _delay_ms(33);
+                set_range(x, y, outpins);
+            }
+        }
+    }
+    reset_all(outpins);
+    _delay_ms(300);
+    set_all(outpins);
+    _delay_ms(300);
+    reset_all(outpins);
+}
+
+
+void program4(void)
+{
+    uint8_t x, y;
+
+    for(x = 0 ; x < 64; x++)
+    {
+        srand(x);
+        y = rand() % 10;
+        set_pin(outpins + y);
+        _delay_ms(44);
+        if(x % 4 == 0)
+        {
+            reset_all(outpins);
+        }
+    }
+}
+
+
+void program5(void)
+{
+    uint8_t x, y;
+
+    reset_all(outpins);
+    for(x = 0; x < PINCOUNT/2; x++)
+    {
+        drop_line_fill(x);
+    }
+    for(x = 0; x < PINCOUNT/2; x++)
+    {
+        drop_line_drain(x);
+    }
+}
+
+
+void test_pwm(void)
+{
+    uint8_t x, y;
+
+    for(y = 0; y < 3; y++)
+    {
+        for(x = 0; x < 128; x++)
+        {
+            config_pwm(x);
+            _delay_ms(10);
+        }
+        for(x = 128; x > 0; x--)
+        {
+            config_pwm(x);
+            _delay_ms(10);
+        }
+    }
+    _delay_ms(300);
+    disable_pwm();
+}
+
+
 int main(void)
 {
     uint8_t x, y;
@@ -266,148 +323,19 @@ int main(void)
     init_output(&outpins[8], PD5, &PORTD, &DDRD);
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
+    timer_init();
+    timer_start();
+
     while(1)
     {
-        /* program 1 */
-        {
-            for(x = 0; x < PINCOUNT; x++)
-            {
-                set_pin(outpins + x);
-                _delay_ms(66);
-            }
-
-            for(x = 0; x < PINCOUNT; x++)
-            {
-                reset_pin(outpins + x);
-                _delay_ms(66);
-                set_pin(outpins + x);
-            }
-
-            for(x = 0; x < PINCOUNT; x++)
-            {
-                reset_pin(outpins + x);
-                _delay_ms(66);
-            }
-
-            for(x = 0; x < PINCOUNT; x++)
-            {
-                set_pin(outpins + x);
-                _delay_ms(66);
-                reset_pin(outpins + x);
-            }
-        }
-
-        /* program 2 */
-        {
-            y = 66;
-            while(y)
-            {
-                for(x = 0; x < PINCOUNT; x++)
-                {
-                    set_pin(outpins + x);
-                    set_pin(outpins + opposite_of(x));
-                    my_delay(y);
-                    reset_pin(outpins + x);
-                    reset_pin(outpins + opposite_of(x));
-                }
-                y -= 6;
-            }
-            set_all();
-            _delay_ms(300);
-            reset_all();
-            _delay_ms(300);
-            set_all();
-            _delay_ms(300);
-            reset_all();
-            _delay_ms(300);
-            set_all();
-        }
-
-        _delay_ms(300);
-
-        /* program 3 */
-        {
-            for(y = 1; y < PINCOUNT; y++)
-            {
-                for(x = 0; x < PINCOUNT; x++)
-                {
-                    reset_range(x, y);
-                    _delay_ms(33);
-                    set_range(x, y);
-                }
-                if(y < 5)
-                {
-                    for(x = PINCOUNT; x > 0; x--)
-                    {
-                        reset_range(x, y);
-                        _delay_ms(33);
-                        set_range(x, y);
-                    }
-                }
-                else
-                {
-                    for(x = 0; x < PINCOUNT; x++)
-                    {
-                        reset_range(x, y);
-                        _delay_ms(33);
-                        set_range(x, y);
-                    }
-                }
-            }
-            reset_all();
-            _delay_ms(300);
-            set_all();
-            _delay_ms(300);
-            reset_all();
-        }
-
-        _delay_ms(300);
-
-        /* program 4 */
-        {
-            for(x = 0 ; x < 64; x++)
-            {
-                srand(x);
-                y = rand() % 10;
-                set_pin(outpins + y);
-                _delay_ms(44);
-                if(x % 4 == 0)
-                {
-                    reset_all();
-                }
-            }
-        }
-        /* program 5 */
-        {
-            reset_all();
-            for(x = 0; x < PINCOUNT/2; x++)
-            {
-                drop_line_fill(x);
-            }
-            for(x = 0; x < PINCOUNT/2; x++)
-            {
-                drop_line_drain(x);
-            }
-        }
-
-        _delay_ms(300);
-
-        /* test PWM */
-        for(y = 0; y < 3; y++)
-        {
-            for(x = 0; x < 128; x++)
-            {
-                config_pwm(x);
-                _delay_ms(10);
-            }
-            for(x = 128; x > 0; x--)
-            {
-                config_pwm(x);
-                _delay_ms(10);
-            }
-        }
-        _delay_ms(300);
-        disable_pwm();
+/*
+        program1();
+        program2();
+        program3();
+        program4();
+        program5();
+        test_pwm();
+*/
     }
 
     return 0;
