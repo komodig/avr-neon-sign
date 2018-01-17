@@ -13,9 +13,6 @@
 #define DELAY_MAX 127
 
 
-pinconf_t outpins[PINCOUNT];
-
-
 void my_delay(uint8_t ms)
 {
     while(ms)
@@ -299,19 +296,19 @@ int main(void)
     init_output(&outpins[8], PD5, &PORTD, &DDRD);
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
-    /*
-    timer_init();
-    timer_start();
-    */
+    timer_init();    /* sei() is called! */
+    timer_start(8);
 
     while(1)
     {
+    /*
         program1();
         program2();
         program3();
         program4();
         program5();
         test_pwm();
+    */
     }
 
     return 0;

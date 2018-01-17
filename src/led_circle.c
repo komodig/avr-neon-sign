@@ -3,6 +3,10 @@
 #include "gpio.h"
 
 
+pinconf_t outpins[PINCOUNT];
+static uint8_t state = 0, direction = RISE, counter = 0, level = 1;
+
+
 void set_all(pinconf_t *outpins)
 {
     uint8_t x;
@@ -28,6 +32,38 @@ void reset_all(pinconf_t *outpins)
 uint8_t opposite_of(uint8_t x)
 {
     return (x > 4 ? x - 5 : x + 5);
+}
+
+
+void isr_led_circle(void)
+{
+
+    if(counter % (1033 * level) == 0)
+    {
+        if(state == 0)
+        {
+            set_all(outpins);
+            state = 1;
+        }
+        else
+        {
+            reset_all(outpins);
+            state = 0;
+/*
+            if(level >= 128)
+            {
+                direction = FALL;
+            }
+            if(level <= 0)
+            {
+                direction = RISE;
+            }
+            level += (direction == RISE ? 1 : -1);
+*/
+        }
+        ++counter;
+        timer_restart(8);
+    }
 }
 
 

@@ -2,13 +2,14 @@
 #include <avr/interrupt.h>
 #include "led_circle.h"
 #include "timer.h"
+#include "led_circle.h"
 
-extern pinconf_t outpins[PINCOUNT];
-static uint8_t state;
 
+static uint8_t state = 0, direction = RISE, counter = 0, level = 1;
 /* signal handler for timer interrupt TOV0 */
 ISR(TIMER0_OVF_vect)
 {
+    /* isr_led_circle(); */
     if(state == 0)
     {
         set_all(outpins);
@@ -37,16 +38,16 @@ void timer_start(uint16_t prescaler)
 {
     switch(prescaler)
     {
-        case 0: 
+        case 0:
             TCCR0B = 0x00;
             break;
+        default:
         case 8:
             TCCR0B |= (1 << CS01);
             break;
         case 64:
             TCCR0B |= (1 << CS01 | 1 << CS00);
             break;
-        default:
         case 256:
             TCCR0B |= (1 << CS02);
             break;
