@@ -6,6 +6,8 @@
 
 #include <util/delay.h>
 #include "gpio.h"
+#include "pwm.h"
+#include "timer.h"
 #include "led_circle.h"
 
 #define DELAY_MAX 127
@@ -121,32 +123,6 @@ void test_output(void)
     /* turn LEDs off */
     PORTB &= ~(1 << PB3 | 1 << PB2 | 1 << PB1 | 1 << PB0);
     PORTD &= ~(1 << PD7 | 1 << PD6 | 1 << PD5 | 1 << PD4 | 1 << PD3 | 1 << PD2);
-}
-
-
-/* Here is an example code of 8-bit Timer2 Fast PWM Mode (8KHz) at 16MHz clock */
-void config_pwm(uint16_t ocra2_val)
-{
-    /* PB3 as output */
-    DDRB |= (1 << PB3);
-    /* e.g. set PWM for 50% duty cycle by ocra2_val = 128 */
-    OCR2A = ocra2_val & 0xFF;
-    OCR2B = (ocra2_val >> 8) & 0xFF;
-     /* set non-inverting mode */
-    TCCR2A |= (1 << COM2A1);
-    /* set fast PWM Mode */
-    TCCR2A |= (1 << WGM21) | (1 << WGM20);
-    /* set prescaler to 8 and starts PWM */
-    TCCR2B |= (1 << CS21);
-}
-
-
-void disable_pwm(void)
-{
-        TCCR2A = 0;
-        TCCR2B = 0;
-        OCR2A = 0;
-        OCR2B = 0;
 }
 
 
@@ -323,19 +299,19 @@ int main(void)
     init_output(&outpins[8], PD5, &PORTD, &DDRD);
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
+    /*
     timer_init();
     timer_start();
+    */
 
     while(1)
     {
-/*
         program1();
         program2();
         program3();
         program4();
         program5();
         test_pwm();
-*/
     }
 
     return 0;
