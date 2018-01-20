@@ -38,6 +38,12 @@ uint8_t opposite_of(uint8_t x)
 
 void ISR_OVF_led_circle(void)
 {
+    timer_restart(8);
+}
+
+
+void ISR_CMP_led_circle(void)
+{
     {
         if(state == 0)
         {

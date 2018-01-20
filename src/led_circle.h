@@ -9,6 +9,7 @@
 extern pinconf_t outpins[PINCOUNT];
 
 extern void ISR_OVF_led_circle(void);
+extern void ISR_CMP_led_circle(void);
 extern void set_all(pinconf_t *outpins);
 extern void reset_all(pinconf_t *outpins);
 extern uint8_t opposite_of(uint8_t x);
