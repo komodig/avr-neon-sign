@@ -8,7 +8,7 @@
 /* signal handler for timer interrupt TOV0 */
 ISR(TIMER0_OVF_vect)
 {
-    isr_led_circle();
+    ISR_OVF_led_circle();
 }
 
 void timer_init(void)

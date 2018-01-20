@@ -4,7 +4,7 @@
 
 
 pinconf_t outpins[PINCOUNT];
-static uint8_t state = 0, direction = RISE, level = 1;
+static uint8_t state = 0, direction = RISE;
 static uint16_t counter = 0;
 
 
@@ -36,9 +36,8 @@ uint8_t opposite_of(uint8_t x)
 }
 
 
-void isr_led_circle(void)
+void ISR_OVF_led_circle(void)
 {
-    if(counter == 1)
     {
         if(state == 0)
         {
@@ -50,49 +49,11 @@ void isr_led_circle(void)
         {
             reset_all(outpins);
             state = 0;
-            timer_restart(level);
+            timer_restart(256);
         }
-        if(level > 4)
-        {
-            level = 0;
-        }
-        ++level;
-        counter = 0;
     }
     ++counter;
     return;
-    /*
-    if(counter % 1 == 0)
-    {
-        if(state == 0)
-        {
-            set_all(outpins);
-            state = 1;
-            timer_restart(8);
-        }
-    }
-    if(counter % level == 0)
-    {
-        if(state == 1)
-        {
-            reset_all(outpins);
-            state = 0;
-
-            if(level >= 265)
-            {
-                direction = FALL;
-            }
-            if(level <= 0)
-            {
-                direction = RISE;
-            }
-            level += (direction == RISE ? 1 : -1);
-
-            timer_restart(8);
-        }
-    }
-    ++counter;
-    */
 }
 
 
