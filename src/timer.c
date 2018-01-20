@@ -5,23 +5,10 @@
 #include "led_circle.h"
 
 
-static uint8_t state = 0, direction = RISE, counter = 0, level = 1;
 /* signal handler for timer interrupt TOV0 */
 ISR(TIMER0_OVF_vect)
 {
-    /* isr_led_circle(); */
-    if(state == 0)
-    {
-        set_all(outpins);
-        state = 1;
-        timer_restart(8);
-    }
-    else
-    {
-        reset_all(outpins);
-        state = 0;
-        timer_restart(256);
-    }
+    isr_led_circle();
 }
 
 void timer_init(void)
@@ -42,15 +29,19 @@ void timer_start(uint16_t prescaler)
             TCCR0B = 0x00;
             break;
         default:
+        case 1:
         case 8:
             TCCR0B |= (1 << CS01);
             break;
+        case 2:
         case 64:
             TCCR0B |= (1 << CS01 | 1 << CS00);
             break;
+        case 3:
         case 256:
             TCCR0B |= (1 << CS02);
             break;
+        case 4:
         case 1024:
             TCCR0B |= (1 << CS02 | 1 << CS00);
             break;
