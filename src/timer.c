@@ -33,7 +33,7 @@ void timer_start(uint16_t prescaler)
     switch(prescaler)
     {
         case 0:
-            TCCR0B = 0x00;
+            TCCR0B = |= (1 << CS00);
             break;
         default:
         case 1:
