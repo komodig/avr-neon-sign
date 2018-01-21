@@ -16,15 +16,19 @@ ISR(TIMER0_COMPA_vect)
     ISR_CMP_led_circle();
 }
 
+void timer_comparator_set(uint8_t val)
+{
+    OCR0A = val;
+}
+
 void timer_init(void)
 {
     /*enable timer overflow interrupt and timer compare interrupt*/
     TIMSK0 |= (1 << TOIE0 | 1 << OCIE0A);
     /* set compare value */
-    OCR0A = 64;
     /*set timer counter initial value*/
     TCNT0=0x00;
-
+    timer_comparator_set(10);
     sei();
 }
 

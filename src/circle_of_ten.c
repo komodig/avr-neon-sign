@@ -13,7 +13,10 @@
 #define DELAY_MAX 127
 
 
-void my_delay(uint8_t ms)
+static uint8_t level = 0, direction = RISE;
+
+
+void my_delay(uint16_t ms)
 {
     while(ms)
     {
@@ -297,7 +300,7 @@ int main(void)
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
     timer_init();    /* sei() is called! */
-    timer_start(8);
+    timer_start(2);
 
     while(1)
     {
@@ -309,6 +312,21 @@ int main(void)
         program5();
         test_pwm();
     */
+        if(level >= 0xFF)
+        {
+            direction = FALL;
+        }
+        else if(level <= 0)
+        {
+            direction = RISE;
+        }
+
+        level += (direction == RISE ? 1 : -1);
+
+        timer_stop();
+        timer_comparator_set(level);
+        timer_start(2);
+        my_delay(10);
     }
 
     return 0;

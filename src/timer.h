@@ -4,5 +4,6 @@ extern void timer_init(void);
 extern void timer_start(uint16_t prescaler);
 extern void timer_stop(void);
 extern void timer_restart(uint16_t prescaler);
+extern void timer_comparator_set(uint8_t val);
 extern uint32_t get_count(void);
 #endif // _TIMER_H_

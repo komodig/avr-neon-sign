@@ -4,9 +4,6 @@
 
 
 pinconf_t outpins[PINCOUNT];
-static uint8_t state = 0, direction = RISE;
-static uint16_t counter = 0;
-
 
 void set_all(pinconf_t *outpins)
 {
@@ -38,28 +35,14 @@ uint8_t opposite_of(uint8_t x)
 
 void ISR_OVF_led_circle(void)
 {
-    timer_restart(8);
+    timer_restart(2);
+    set_all(outpins);
 }
 
 
 void ISR_CMP_led_circle(void)
 {
-    {
-        if(state == 0)
-        {
-            set_all(outpins);
-            state = 1;
-            timer_restart(8);
-        }
-        else
-        {
-            reset_all(outpins);
-            state = 0;
-            timer_restart(256);
-        }
-    }
-    ++counter;
-    return;
+    reset_all(outpins);
 }
 
 
