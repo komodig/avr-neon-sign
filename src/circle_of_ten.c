@@ -300,7 +300,7 @@ int main(void)
     init_output(&outpins[8], PD5, &PORTD, &DDRD);
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
-    timer_init();    /* sei() is called! */
+    timer_init();
     sei();
     timer_start(2);
 
@@ -320,7 +320,7 @@ int main(void)
         timer_stop();
         timer_comparator_set(level);
         timer_start(2);
-        my_delay(10);
+        my_delay(5);
     }
 
     return 0;

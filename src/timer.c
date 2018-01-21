@@ -36,24 +36,20 @@ void timer_start(uint16_t prescaler)
     switch(prescaler)
     {
         case 0:
-            TCCR0B |= (1 << CS00);
+            TCCR0B |= (1 << CS00);              /* no prescaler */
             break;
         default:
         case 1:
-        case 8:
-            TCCR0B |= (1 << CS01);
+            TCCR0B |= (1 << CS01);              /* prescaler 8 */
             break;
         case 2:
-        case 64:
-            TCCR0B |= (1 << CS01 | 1 << CS00);
+            TCCR0B |= (1 << CS01 | 1 << CS00);  /* prescaler 64 */
             break;
         case 3:
-        case 256:
-            TCCR0B |= (1 << CS02);
+            TCCR0B |= (1 << CS02);              /* prescaler 256 */
             break;
         case 4:
-        case 1024:
-            TCCR0B |= (1 << CS02 | 1 << CS00);
+            TCCR0B |= (1 << CS02 | 1 << CS00);  /* prescaler 1024 */
             break;
     }
 }
