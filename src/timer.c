@@ -29,7 +29,6 @@ void timer_init(void)
     /*set timer counter initial value*/
     TCNT0=0x00;
     timer_comparator_set(10);
-    sei();
 }
 
 void timer_start(uint16_t prescaler)

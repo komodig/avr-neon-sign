@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <avr/interrupt.h>
 
 #define F_CPU 12000000UL
 
@@ -300,18 +301,11 @@ int main(void)
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
     timer_init();    /* sei() is called! */
+    sei();
     timer_start(2);
 
     while(1)
     {
-    /*
-        program1();
-        program2();
-        program3();
-        program4();
-        program5();
-        test_pwm();
-    */
         if(level >= 0xFF)
         {
             direction = FALL;
