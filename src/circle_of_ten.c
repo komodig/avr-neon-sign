@@ -8,6 +8,7 @@
 #include <util/delay.h>
 #include "gpio.h"
 #include "pwm.h"
+#include "usart.h"
 #include "timer.h"
 #include "led_circle.h"
 
@@ -301,8 +302,10 @@ int main(void)
     init_output(&outpins[9], PB0, &PORTB, &DDRB);
 
     timer_init();
+    usart_init(19200);
     sei();
     timer_start(2);
+    usart_write_str("welcome to avr-uno!\r\n");
 
     while(1)
     {

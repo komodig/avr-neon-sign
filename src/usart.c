@@ -34,9 +34,10 @@ volatile unsigned char get_char = 0;
 void usart_init(unsigned long baudrate) 
 { 
   	//Enable TXEN im Register UCR TX-Data Enable
-	UCR =(1 << TXEN | 1 << RXEN | 1<< RXCIE);
+	UCSR0B =(1 << TXEN0 | 1 << RXEN0 | 1<< RXCIE0);
 	//Teiler wird gesetzt 
-	UBRR=(SYSCLK / (baudrate * 16L) - 1);
+	UBRR0H = 0xFF & ((SYSCLK / (baudrate * 16L) - 1) >> 8);
+	UBRR0L = 0xFF & (SYSCLK / (baudrate * 16L) - 1);
 }
 
 //----------------------------------------------------------------------------
@@ -47,9 +48,9 @@ void usart_write_char(char c)
 	get_char = 0;
 	
 	//Warten solange bis Zeichen gesendet wurde
-	while(!(USR & (1<<UDRE)));
+	while(!(UCSR0A & (1<<UDRE0)));
 	//Ausgabe des Zeichens
-	UDR = c;
+	UDR0 = c;
 	if (rx_check)
 	{
 		while( (!get_char) && (timeout--));
@@ -158,10 +159,10 @@ void usart_write_str(char *str)
 
 //----------------------------------------------------------------------------
 //Empfang eines Zeichens
-ISR (USART_RX)
+ISR (USART_RX_vect)
 {
     unsigned char receive_char;
-    receive_char = (UDR);
+    receive_char = (UDR0);
     
 	if(!rx_check)
 	{
