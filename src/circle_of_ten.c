@@ -304,26 +304,28 @@ int main(void)
     timer_init();
     usart_init(19200);
     sei();
-    timer_start(2);
+    timer_start(PRESCALER);
     usart_write_str("welcome to avr-uno!\r\n");
+
+    direction = FALL;
+    x = level = 0;
 
     while(1)
     {
-        if(level >= 0xFF)
+        if(level <= 0)
         {
-            direction = FALL;
-        }
-        else if(level <= 0)
-        {
-            direction = RISE;
+            level = 0xFF;
+            x = (x >= PINCOUNT-1 ? 0 : x+1);
+            reset_all_states(outpins);
+            set_state(outpins + x);
         }
 
         level += (direction == RISE ? 1 : -1);
 
         timer_stop();
         timer_comparator_set(level);
-        timer_start(2);
-        my_delay(5);
+        timer_start(PRESCALER);
+        my_delay(3);
     }
 
     return 0;

@@ -5,6 +5,7 @@
 
 pinconf_t outpins[PINCOUNT];
 
+
 void set_all(pinconf_t *outpins)
 {
     uint8_t x;
@@ -13,6 +14,30 @@ void set_all(pinconf_t *outpins)
     {
         set_pin(outpins + x);
     }
+}
+
+
+void all_state_to_pins(pinconf_t *outpins)
+{
+    uint8_t x;
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        if((outpins + x)->state == 1)
+        {
+            set_pin(outpins + x);
+        }
+        else
+        {
+            reset_pin(outpins + x);
+        }
+    }
+}
+
+
+void set_state(pinconf_t *pinobj)
+{
+    pinobj->state = 1;
 }
 
 
@@ -27,6 +52,17 @@ void reset_all(pinconf_t *outpins)
 }
 
 
+void reset_all_states(pinconf_t *outpins)
+{
+    uint8_t x;
+
+    for(x = 0; x < PINCOUNT; x++)
+    {
+        (outpins + x)->state = 0;
+    }
+}
+
+
 uint8_t opposite_of(uint8_t x)
 {
     return (x > 4 ? x - 5 : x + 5);
@@ -35,8 +71,8 @@ uint8_t opposite_of(uint8_t x)
 
 void ISR_OVF_led_circle(void)
 {
-    timer_restart(2);
-    set_all(outpins);
+    timer_restart(PRESCALER);
+    all_state_to_pins(outpins);
 }
 
 
