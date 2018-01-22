@@ -17,11 +17,9 @@ void init_output(pinconf_t *outpin,
 void set_pin(pinconf_t *gpio)
 {
     *gpio->port |= (1 << gpio->pin);
-    gpio->state = 1;
 }
 
 void reset_pin(pinconf_t *gpio)
 {
     *gpio->port &= ~(1 << gpio->pin);
-    gpio->state = 0;
 }
