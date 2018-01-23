@@ -132,6 +132,7 @@ void program1(void)
 {
     uint8_t x, y;
 
+    usart_write_str("program 1\r\n");
     for(x = 0; x < PINCOUNT; x++)
     {
         set_pin(outpins + x);
@@ -165,6 +166,7 @@ void program2(void)
     uint8_t x, y;
 
     y = 66;
+    usart_write_str("program 2\r\n");
     while(y)
     {
         for(x = 0; x < PINCOUNT; x++)
@@ -193,6 +195,7 @@ void program3(void)
 {
     uint8_t x, y;
 
+    usart_write_str("program 3\r\n");
     for(y = 1; y < PINCOUNT; y++)
     {
         for(x = 0; x < PINCOUNT; x++)
@@ -232,6 +235,7 @@ void program4(void)
 {
     uint8_t x, y;
 
+    usart_write_str("program 4\r\n");
     for(x = 0 ; x < 64; x++)
     {
         srand(x);
@@ -250,6 +254,7 @@ void program5(void)
 {
     uint8_t x, y;
 
+    usart_write_str("program 5\r\n");
     reset_all(outpins);
     for(x = 0; x < PINCOUNT/2; x++)
     {
@@ -266,6 +271,7 @@ void test_pwm(void)
 {
     uint8_t x, y;
 
+    usart_write_str("test pwm\r\n");
     for(y = 0; y < 3; y++)
     {
         for(x = 0; x < 128; x++)
@@ -281,6 +287,37 @@ void test_pwm(void)
     }
     _delay_ms(300);
     disable_pwm();
+}
+
+
+void test_soft_pwm(void)
+{
+    uint8_t x = 0;
+    uint16_t countdown = 0x0a71;
+    direction = FALL;
+
+    level = 0xFF;
+    usart_write_str("test soft pwm\r\n");
+    timer_start(PRESCALER);
+    while(countdown)
+    {
+        if(level <= 0)
+        {
+            level = 0xFF;
+            x = (x >= PINCOUNT-1 ? 0 : x+1);
+            reset_all_states(outpins);
+            set_state(outpins + x);
+        }
+
+        level += (direction == RISE ? 1 : -1);
+
+        timer_stop();
+        timer_comparator_set(level);
+        timer_start(PRESCALER);
+        _delay_us(2000);
+        --countdown;
+    }
+    timer_stop();
 }
 
 
@@ -304,28 +341,18 @@ int main(void)
     timer_init();
     usart_init(19200);
     sei();
-    timer_start(PRESCALER);
     usart_write_str("welcome to avr-uno!\r\n");
-
-    direction = FALL;
-    x = level = 0;
 
     while(1)
     {
-        if(level <= 0)
-        {
-            level = 0xFF;
-            x = (x >= PINCOUNT-1 ? 0 : x+1);
-            reset_all_states(outpins);
-            set_state(outpins + x);
-        }
-
-        level += (direction == RISE ? 1 : -1);
-
-        timer_stop();
-        timer_comparator_set(level);
-        timer_start(PRESCALER);
-        my_delay(3);
+        program1();
+        test_soft_pwm();
+        program2();
+        test_soft_pwm();
+        program4();
+        test_soft_pwm();
+        program5();
+        test_soft_pwm();
     }
 
     return 0;
