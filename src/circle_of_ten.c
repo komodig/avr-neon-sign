@@ -186,8 +186,6 @@ void program2(void)
     set_all(outpins);
     _delay_ms(300);
     reset_all(outpins);
-    _delay_ms(300);
-    set_all(outpins);
 }
 
 
