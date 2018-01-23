@@ -14,12 +14,12 @@ void init_output(pinconf_t *outpin,
     *ddreg |= (1 << gpio); /* configure gpio as output */
 }
 
-void set_pin(pinconf_t *gpio)
+inline void set_pin(pinconf_t *gpio)
 {
     *gpio->port |= (1 << gpio->pin);
 }
 
-void reset_pin(pinconf_t *gpio)
+inline void reset_pin(pinconf_t *gpio)
 {
     *gpio->port &= ~(1 << gpio->pin);
 }
