@@ -2,7 +2,7 @@
 #define _LED_CIRCLE_H_
 #include "gpio.h"
 
-#define PINCOUNT 10
+#define PINCOUNT 16
 #define PRESCALER 2
 #define RISE 1
 #define FALL 0
