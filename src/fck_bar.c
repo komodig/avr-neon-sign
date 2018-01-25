@@ -128,6 +128,8 @@ void test_pins(uint8_t pattern)
 int main(void)
 {
     uint8_t x, y;
+
+    init_output(&outpins[0], PD2, &PORTD, &DDRD); // Fr
     init_output(&outpins[1], PD6, &PORTD, &DDRD); // Ir
     init_output(&outpins[2], PD4, &PORTD, &DDRD); // Cr
     init_output(&outpins[3], PC2, &PORTC, &DDRC); // k2r
@@ -155,6 +157,7 @@ int main(void)
 
     while(1)
     {
+        test_soft_pwm();
     }
 
     return 0;
