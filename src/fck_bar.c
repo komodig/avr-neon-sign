@@ -54,6 +54,10 @@ void test_soft_pwm(void)
         /* set all red pins */
         for(x = 0; x < PINCOUNT/2; ++x)
         {
+            if(x == 1)
+            {
+                continue;
+            }
             set_state(outpins + x);
         }
 
@@ -65,6 +69,7 @@ void test_soft_pwm(void)
         else if(level >= 0xFF)
         {
             direction = FALL;
+            _delay_ms(500);
         }
 
         level += (direction == RISE ? 1 : -1);
@@ -151,13 +156,14 @@ int main(void)
     usart_init(19200);
     sei();
     usart_write_str("welcome to avr-uno!\r\n");
-    test_pins(FCK_BAR);
-    test_pins(FKK_BAY);
-    test_soft_pwm();
 
     while(1)
     {
+        test_pins(FCK_BAR);
+        test_pins(FKK_BAY);
+        _delay_ms(500);
         test_soft_pwm();
+        _delay_ms(500);
     }
 
     return 0;
