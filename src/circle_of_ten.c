@@ -301,31 +301,39 @@ void test_pwm(void)
 
 void test_soft_pwm(void)
 {
-    uint8_t x = 0;
-    uint16_t countdown = 0x0a71;
-    direction = FALL;
+    uint8_t x;
 
-    level = 0xFF;
+    level = 1;
+    direction = RISE;
     usart_write_str("test soft pwm\r\n");
     timer_start(PRESCALER);
-    while(countdown)
+    reset_all_states(outpins);
+
+    while(1)
     {
-        if(level <= 0)
+        /* set all red pins */
+        for(x = 0; x < PINCOUNT/2; ++x)
         {
-            level = 0xFF;
-            x = (x >= PINCOUNT-1 ? 0 : x+1);
-            reset_all_states(outpins);
             set_state(outpins + x);
         }
 
-        level += (direction == RISE ? 1 : -1);
+        if(level <= 0)
+        {
+            /* direction = RISE; */
+            break;
+        }
+        else if(level >= 0xFF)
+        {
+            direction = FALL;
+        }
 
+        level += (direction == RISE ? 1 : -1);
         timer_stop();
         timer_comparator_set(level);
         timer_start(PRESCALER);
         _delay_us(2000);
-        --countdown;
     }
+
     timer_stop();
 }
 
@@ -362,7 +370,7 @@ void test_pins(uint8_t pattern)
             set_pin(outpins + x-1);
         }
 
-        _delay_ms(500);
+        _delay_ms(200);
         reset_pin(outpins + x);
 
         if(pattern == FCK_BAR && (x == Y_RED || x == Y_GREEN))
@@ -410,6 +418,7 @@ int main(void)
     {
         test_pins(FCK_BAR);
         test_pins(FKK_BAY);
+        test_soft_pwm();
     }
 
     return 0;
