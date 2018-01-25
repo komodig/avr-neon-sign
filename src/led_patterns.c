@@ -1,5 +1,5 @@
 #include <avr/io.h>
-#include "led_circle.h"
+#include "led_patterns.h"
 #include "gpio.h"
 
 
@@ -113,14 +113,14 @@ void reset_all_states(pinconf_t *outpins)
 /* 
  * interrupt service routines
  */
-void ISR_OVF_led_circle(void)
+void ISR_OVF_led_patterns(void)
 {
     timer_restart(PRESCALER);
     all_state_to_pins(outpins);
 }
 
 
-void ISR_CMP_led_circle(void)
+void ISR_CMP_led_patterns(void)
 {
     reset_all(outpins);
 }

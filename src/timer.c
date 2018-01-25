@@ -1,19 +1,19 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "led_circle.h"
+#include "led_patterns.h"
 #include "timer.h"
-#include "led_circle.h"
+#include "led_patterns.h"
 
 
 /* signal handler for timer interrupt TOV0 */
 ISR(TIMER0_OVF_vect)
 {
-    ISR_OVF_led_circle();
+    ISR_OVF_led_patterns();
 }
 
 ISR(TIMER0_COMPA_vect)
 {
-    ISR_CMP_led_circle();
+    ISR_CMP_led_patterns();
 }
 
 inline void timer_comparator_set(uint8_t val)

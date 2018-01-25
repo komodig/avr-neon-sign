@@ -10,7 +10,7 @@
 #include "pwm.h"
 #include "usart.h"
 #include "timer.h"
-#include "led_circle.h"
+#include "led_patterns.h"
 
 #define DELAY_MAX 127
 
