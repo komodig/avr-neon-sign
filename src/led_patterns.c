@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include "led_patterns.h"
 #include "gpio.h"
-
+#include "usart.h"
 
 pinconf_t outpins[PINCOUNT];
 
@@ -72,8 +72,41 @@ void reset_range(uint8_t start, uint8_t count, pinconf_t *outpins)
 }
 
 
+void set_letter(uint8_t *letter, pinconf_t *outpins)
+{
+    uint8_t x;
+
+    usart_write_str("set_letter\r\n");
+    usart_write_char(*letter + 0x30);
+    usart_write_char('\r');
+    usart_write_char('\n');
+    for(x = 0; x < PINCOUNT; ++x)
+    {
+        if(is_letter(outpins + x, *letter))
+        {
+            usart_write_str("letters match\r\n");
+            set_pin(outpins + x);
+        }
+    }
+}
+
+
+void reset_letter(uint8_t *letter, pinconf_t *outpins)
+{
+    uint8_t x;
+
+    for(x = 0; x < PINCOUNT; ++x)
+    {
+        if(is_letter(outpins + x, *letter))
+        {
+            reset_pin(outpins + x);
+        }
+    }
+}
+
+
 /*
- * pinconf object states to indirectly set pins
+ * pinconf object states which are propagated to pin by timer ISR
  */
 void all_state_to_pins(pinconf_t *outpins)
 {
@@ -110,7 +143,7 @@ void reset_all_states(pinconf_t *outpins)
 }
 
 
-/* 
+/*
  * interrupt service routines
  */
 void ISR_OVF_led_patterns(void)

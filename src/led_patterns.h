@@ -3,6 +3,7 @@
 #include "gpio.h"
 
 #define PINCOUNT 16
+#define LETTERCOUNT 6
 #define PRESCALER 2
 #define RISE 1
 #define FALL 0
@@ -19,4 +20,6 @@ extern uint8_t opposite_of(uint8_t x);
 extern void increase_circular_ptr(pinconf_t **led_to_set, pinconf_t *outpins);
 extern void set_range(uint8_t start, uint8_t count, pinconf_t *outpins);
 extern void reset_range(uint8_t start, uint8_t count, pinconf_t *outpins);
+extern void set_letter(uint8_t *letter, pinconf_t *outpins);
+extern void reset_letter(uint8_t *letter, pinconf_t *outpins);
 #endif /* ifndef _LED_PATTERNS_H_ */
