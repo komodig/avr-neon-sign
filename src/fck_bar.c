@@ -51,7 +51,7 @@ void my_delay(uint16_t ms)
 }
 
 
-void test_soft_pwm(void)
+void test_soft_pwm(uint16_t on_time)
 {
     uint8_t x;
 
@@ -81,7 +81,7 @@ void test_soft_pwm(void)
         else if(level >= 0xFF)
         {
             direction = FALL;
-            _delay_ms(500);
+            my_delay(on_time);
         }
 
         level += (direction == RISE ? 1 : -1);
@@ -106,6 +106,31 @@ void test_pins(uint8_t *pattern)
         _delay_ms(200);
         reset_letter(pattern + x, outpins);
     }
+}
+
+
+void test_mixed_pins(uint8_t *pattern)
+{
+    uint8_t x;
+    const uint8_t PAT2[LETTERCOUNT] = { F_GREEN, K_GREEN, K2_GREEN, B_GREEN, A_RED, Y_GREEN };
+
+    usart_write_str("test mixed pins\r\n");
+    for(x = 0; x < LETTERCOUNT; x++)
+    {
+        set_letter(pattern + x, outpins);
+    }
+    _delay_ms(1500);
+    reset_letter(pattern + 4, outpins);
+    set_letter((uint8_t *)&PAT2[4], outpins);
+    _delay_ms(200);
+    reset_letter((uint8_t *)&PAT2[4], outpins);
+    _delay_ms(100);
+    reset_letter(pattern + 4, outpins);
+    set_letter((uint8_t *)&PAT2[4], outpins);
+    _delay_ms(300);
+    reset_all(outpins);
+    set_letter((uint8_t *)&PAT2[4], outpins);
+    _delay_ms(400);
 }
 
 
@@ -138,10 +163,15 @@ int main(void)
     while(1)
     {
         test_pins((uint8_t *)FCK_BAR);
+        test_soft_pwm(2000);
+        _delay_ms(500);
+        test_soft_pwm(3000);
+        _delay_ms(500);
         test_pins((uint8_t *)FKK_BAY);
-        _delay_ms(500);
-        test_soft_pwm();
-        _delay_ms(500);
+        test_mixed_pins((uint8_t *)FKK_BAY);
+        _delay_ms(1000);
+        reset_all(outpins);
+        _delay_ms(1000);
     }
 
     return 0;
