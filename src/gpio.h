@@ -2,7 +2,7 @@
 #define _GPIO_H_
 
 typedef enum colored_letter {
-    F_RED,
+    F_RED = 1,
     C_RED,
     K_RED,
     K2_RED,
