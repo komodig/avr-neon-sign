@@ -117,10 +117,7 @@ void test_mixed_pins(uint8_t *pattern, uint8_t rand_pin)
     *(pattern2 + rand_pin) = *(pattern2 + rand_pin) - 8;
 
     usart_write_str("test mixed pins\r\n");
-    for(x = 0; x < LETTERCOUNT; x++)
-    {
-        set_letter(pattern + x, outpins);
-    }
+    set_pattern(pattern, outpins);
     _delay_ms(1500);
     reset_letter(pattern + rand_pin, outpins);
     set_letter(pattern2 + rand_pin, outpins);

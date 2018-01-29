@@ -100,6 +100,17 @@ void reset_letter(uint8_t *letter, pinconf_t *outpins)
 }
 
 
+void set_pattern(uint8_t *pattern, pinconf_t *outpins)
+{
+    uint8_t x;
+
+    for(x = 0; x < LETTERCOUNT; ++x)
+    {
+        set_letter(pattern + x, outpins);
+    }
+}
+
+
 /*
  * pinconf object states which are propagated to pin by timer ISR
  */
