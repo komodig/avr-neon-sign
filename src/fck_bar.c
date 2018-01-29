@@ -14,6 +14,7 @@
 #include "led_patterns.h"
 
 #define DELAY_MAX 127
+#define LETTER_DONE 0xFF
 
 static const uint8_t FCK_BAR[LETTERCOUNT] = { F_RED, C_RED, K2_RED, B_RED, A_RED, R_RED };
 static const uint8_t FKK_BAY[LETTERCOUNT] = { F_GREEN, K_GREEN, K2_GREEN, B_GREEN, A_GREEN, Y_GREEN };
@@ -115,6 +116,58 @@ void test_pins(uint8_t *pattern)
 }
 
 
+uint16_t my_rand(uint16_t init_rand)
+{
+    srand(init_rand);
+    return (uint16_t)((double)rand() / ((double)RAND_MAX + 1) * 52);
+}
+
+
+uint16_t random_letter_disfunct(uint8_t *target_pattern, uint16_t rand_val)
+{
+    uint8_t x, rand_pin;
+    uint16_t rand_delay, rand_number = rand_val;
+    uint8_t pattern[LETTERCOUNT];
+
+    usart_write_str("random_letter_disfunct\r\n");
+    memcpy(pattern, target_pattern, LETTERCOUNT);
+    rand_number = my_rand(rand_number);
+    rand_pin = rand_number % 6;
+
+    for(x = 0; x < 5; ++x)
+    {
+        rand_number = my_rand(rand_number);
+        rand_delay = ((rand_number % 5) + 1) * 50;
+
+        reset_letter(pattern + rand_pin, outpins);
+        my_delay(100);
+        set_letter(pattern + rand_pin, outpins);
+        my_delay(100);
+        reset_letter(pattern + rand_pin, outpins);
+        my_delay(rand_delay * 5);
+        set_letter(pattern + rand_pin, outpins);
+        my_delay(rand_delay);
+    }
+
+    return rand_number;
+}
+
+
+uint8_t all_switched(uint8_t *pattern, uint8_t last_switched)
+{
+    uint8_t x;
+
+    *(pattern + last_switched) = LETTER_DONE;
+
+    for(x = 0; x < LETTERCOUNT; ++x)
+    {
+        if(*(pattern + x) != LETTER_DONE)
+            return 0;
+    }
+    return 1;
+}
+
+
 uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t rand_val)
 {
     uint8_t x, rand_pin;
@@ -129,13 +182,15 @@ uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t 
 
     set_pattern(pattern1, outpins);
 
-    for(x = 0; x < 64; ++x)
+    do
     {
-        srand(rand_number);
-        rand_number = rand();
-        rand_pin = rand_number % 7;
+        rand_number = my_rand(rand_number);
+        rand_pin = rand_number % 6;
+        usart_write_char(rand_pin + 0x30);
+        usart_write_char('\r');
+        usart_write_char('\n');
 
-        if(*(pattern1 + rand_pin) == 0xFF)
+        if(*(pattern1 + rand_pin) == LETTER_DONE)
         {
             _delay_ms(200);
             continue;
@@ -144,8 +199,7 @@ uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t 
         _delay_ms(300);
         reset_letter(pattern1 + rand_pin, outpins);
         set_letter(pattern2 + rand_pin, outpins);
-        *(pattern1 + rand_pin) = 0xFF;  /* letter is done */
-    }
+    } while(!all_switched(pattern1, rand_pin));
 
     return rand_number;
 }
@@ -177,18 +231,21 @@ int main(void)
     usart_init(19200);
     sei();
     usart_write_str("welcome to avr-uno!\r\n");
+    test_pins((uint8_t *)FCK_BAR);
+    test_pins((uint8_t *)FKK_BAY);
 
     while(1)
     {
-/*        test_pins((uint8_t *)FCK_BAR);  */
+    /*
         test_soft_pwm(2000);
         _delay_ms(500);
         test_soft_pwm(3000);
         _delay_ms(500);
-/*        test_pins((uint8_t *)FKK_BAY);  */
-
+    */
         rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
-        _delay_ms(2000);
+        _delay_ms(1000);
+        rand_number = random_letter_disfunct((uint8_t *)FKK_BAY, rand_number);
+        _delay_ms(100);
         rand_number = letterized_change((uint8_t *)FKK_BAY, (uint8_t *)FCK_BAR, rand_number);
         _delay_ms(1000);
         reset_all(outpins);
