@@ -109,10 +109,10 @@ void test_pins(uint8_t *pattern)
 }
 
 
-void test_mixed_pins(uint8_t *pattern)
+void test_mixed_pins(uint8_t *pattern, uint8_t rand_pin)
 {
     uint8_t x;
-    const uint8_t PAT2[LETTERCOUNT] = { F_GREEN, K_GREEN, K2_GREEN, B_GREEN, A_RED, Y_GREEN };
+    uint8_t pattern2[LETTERCOUNT] = { F_RED, K_RED, K2_RED, B_RED, A_RED, Y_RED};
 
     usart_write_str("test mixed pins\r\n");
     for(x = 0; x < LETTERCOUNT; x++)
@@ -120,23 +120,24 @@ void test_mixed_pins(uint8_t *pattern)
         set_letter(pattern + x, outpins);
     }
     _delay_ms(1500);
-    reset_letter(pattern + 4, outpins);
-    set_letter((uint8_t *)&PAT2[4], outpins);
+    reset_letter(pattern + rand_pin, outpins);
+    set_letter(pattern2 + rand_pin, outpins);
     _delay_ms(200);
-    reset_letter((uint8_t *)&PAT2[4], outpins);
+    reset_letter(pattern2 + rand_pin, outpins);
     _delay_ms(100);
-    reset_letter(pattern + 4, outpins);
-    set_letter((uint8_t *)&PAT2[4], outpins);
+    reset_letter(pattern + rand_pin, outpins);
+    set_letter(pattern2 + rand_pin, outpins);
     _delay_ms(300);
     reset_all(outpins);
-    set_letter((uint8_t *)&PAT2[4], outpins);
+    set_letter(pattern2 + rand_pin, outpins);
     _delay_ms(400);
 }
 
 
 int main(void)
 {
-    uint8_t x, y;
+    uint8_t x, y, rand_pin;
+    uint16_t rand_number = 0xAFFE;
 
     init_output(&outpins[0], PD2, &PORTD, &DDRD, (uint8_t *)&pin_for_letters[0]); // Fr
     init_output(&outpins[1], PD6, &PORTD, &DDRD, (uint8_t *)&pin_for_letters[1]); // Ir
@@ -162,13 +163,17 @@ int main(void)
 
     while(1)
     {
-        test_pins((uint8_t *)FCK_BAR);
+/*        test_pins((uint8_t *)FCK_BAR);  */
         test_soft_pwm(2000);
         _delay_ms(500);
         test_soft_pwm(3000);
         _delay_ms(500);
-        test_pins((uint8_t *)FKK_BAY);
-        test_mixed_pins((uint8_t *)FKK_BAY);
+/*        test_pins((uint8_t *)FKK_BAY);  */
+
+        srand(rand_number);
+        rand_number = rand();
+        rand_pin = rand_number / (RAND_MAX / 6 + 1);
+        test_mixed_pins((uint8_t *)FKK_BAY, rand_pin);
         _delay_ms(1000);
         reset_all(outpins);
         _delay_ms(1000);
