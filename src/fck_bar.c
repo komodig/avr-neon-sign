@@ -112,7 +112,9 @@ void test_pins(uint8_t *pattern)
 void test_mixed_pins(uint8_t *pattern, uint8_t rand_pin)
 {
     uint8_t x;
-    uint8_t pattern2[LETTERCOUNT] = { F_RED, K_RED, K2_RED, B_RED, A_RED, Y_RED};
+    uint8_t pattern2[LETTERCOUNT];
+    memcpy(pattern2, pattern, LETTERCOUNT);
+    *(pattern2 + rand_pin) = *(pattern2 + rand_pin) - 8;
 
     usart_write_str("test mixed pins\r\n");
     for(x = 0; x < LETTERCOUNT; x++)
