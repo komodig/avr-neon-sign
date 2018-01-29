@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 #define F_CPU 12000000UL
 
@@ -43,6 +44,11 @@ static uint8_t level = 0, direction = RISE;
 
 void my_delay(uint16_t ms)
 {
+    uint8_t buffer[32];
+    memset(buffer, 0, 32);
+    sprintf(buffer, "my delay: %u\r\n", ms);
+    usart_write_str(buffer);
+
     while(ms)
     {
         _delay_ms(1);
@@ -109,27 +115,39 @@ void test_pins(uint8_t *pattern)
 }
 
 
-void test_mixed_pins(uint8_t *pattern, uint8_t rand_pin)
+uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t rand_val)
 {
-    uint8_t x;
+    uint8_t x, rand_pin;
+    uint16_t rand_number = rand_val;
+    uint8_t pattern1[LETTERCOUNT];
     uint8_t pattern2[LETTERCOUNT];
-    memcpy(pattern2, pattern, LETTERCOUNT);
-    *(pattern2 + rand_pin) = *(pattern2 + rand_pin) - 8;
 
-    usart_write_str("test mixed pins\r\n");
-    set_pattern(pattern, outpins);
-    _delay_ms(1500);
-    reset_letter(pattern + rand_pin, outpins);
-    set_letter(pattern2 + rand_pin, outpins);
-    _delay_ms(200);
-    reset_letter(pattern2 + rand_pin, outpins);
-    _delay_ms(100);
-    reset_letter(pattern + rand_pin, outpins);
-    set_letter(pattern2 + rand_pin, outpins);
-    _delay_ms(300);
-    reset_all(outpins);
-    set_letter(pattern2 + rand_pin, outpins);
-    _delay_ms(400);
+    usart_write_str("letterized change\r\n");
+
+    memcpy(pattern1, from_pattern, LETTERCOUNT);
+    memcpy(pattern2, to_pattern, LETTERCOUNT);
+
+    set_pattern(pattern1, outpins);
+
+    for(x = 0; x < 64; ++x)
+    {
+        srand(rand_number);
+        rand_number = rand();
+        rand_pin = rand_number % 7;
+
+        if(*(pattern1 + rand_pin) == 0xFF)
+        {
+            _delay_ms(200);
+            continue;
+        }
+
+        _delay_ms(300);
+        reset_letter(pattern1 + rand_pin, outpins);
+        set_letter(pattern2 + rand_pin, outpins);
+        *(pattern1 + rand_pin) = 0xFF;  /* letter is done */
+    }
+
+    return rand_number;
 }
 
 
@@ -169,10 +187,9 @@ int main(void)
         _delay_ms(500);
 /*        test_pins((uint8_t *)FKK_BAY);  */
 
-        srand(rand_number);
-        rand_number = rand();
-        rand_pin = rand_number / (RAND_MAX / 6 + 1);
-        test_mixed_pins((uint8_t *)FKK_BAY, rand_pin);
+        rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
+        _delay_ms(2000);
+        rand_number = letterized_change((uint8_t *)FKK_BAY, (uint8_t *)FCK_BAR, rand_number);
         _delay_ms(1000);
         reset_all(outpins);
         _delay_ms(1000);
