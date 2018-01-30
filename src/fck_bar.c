@@ -168,6 +168,28 @@ uint8_t all_switched(uint8_t *pattern, uint8_t last_switched)
 }
 
 
+void x_ing_letters(uint8_t *from_pattern, uint8_t *to_pattern)
+{
+    uint8_t x;
+    uint8_t pattern1[LETTERCOUNT];
+    uint8_t pattern2[LETTERCOUNT];
+    uint8_t *ptr1 = pattern1;
+    uint8_t *ptr2 = pattern2 + LETTERCOUNT - 1;
+
+    memcpy(pattern1, to_pattern, LETTERCOUNT);
+    memcpy(pattern2, from_pattern, LETTERCOUNT);
+
+    for(x = 0; x < LETTERCOUNT; ++x)
+    {
+        set_letter(ptr1, outpins);
+        set_letter(ptr2, outpins);
+        _delay_ms(200);
+        reset_letter(ptr1++, outpins);
+        reset_letter(ptr2--, outpins);
+    }
+}
+
+
 uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t rand_val)
 {
     uint8_t x, rand_pin;
@@ -237,6 +259,8 @@ int main(void)
     while(1)
     {
 
+        x_ing_letters((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY);
+        x_ing_letters((uint8_t *)FKK_BAY, (uint8_t *)FCK_BAR);
         test_soft_pwm(2000);
         _delay_ms(500);
         test_soft_pwm(3000);
