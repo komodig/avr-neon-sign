@@ -118,8 +118,8 @@ void test_pins(uint8_t *pattern)
 
 uint16_t my_rand(uint16_t init_rand)
 {
-    srand(init_rand);
-    return (uint16_t)((double)rand() / ((double)RAND_MAX + 1) * 52);
+    /* srand(init_rand); */
+    return (uint16_t)((double)rand() / ((double)RAND_MAX + 1) * 53);
 }
 
 
@@ -134,7 +134,7 @@ uint16_t random_letter_disfunct(uint8_t *target_pattern, uint16_t rand_val)
     rand_number = my_rand(rand_number);
     rand_pin = rand_number % 6;
 
-    for(x = 0; x < 5; ++x)
+    for(x = 0; x < 2; ++x)
     {
         rand_number = my_rand(rand_number);
         rand_delay = ((rand_number % 5) + 1) * 50;
@@ -244,7 +244,11 @@ int main(void)
     */
         rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
         _delay_ms(1000);
-        rand_number = random_letter_disfunct((uint8_t *)FKK_BAY, rand_number);
+        y = my_rand(rand_number);
+        for(x = 0; x < y % 5 + 1; ++x)
+        {
+            rand_number = random_letter_disfunct((uint8_t *)FKK_BAY, rand_number);
+        }
         _delay_ms(100);
         rand_number = letterized_change((uint8_t *)FKK_BAY, (uint8_t *)FCK_BAR, rand_number);
         _delay_ms(1000);
