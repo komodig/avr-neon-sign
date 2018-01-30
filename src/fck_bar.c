@@ -236,12 +236,12 @@ int main(void)
 
     while(1)
     {
-    /*
+
         test_soft_pwm(2000);
         _delay_ms(500);
         test_soft_pwm(3000);
         _delay_ms(500);
-    */
+
         rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
         _delay_ms(1000);
         y = my_rand(rand_number);
