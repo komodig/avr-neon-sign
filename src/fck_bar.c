@@ -313,11 +313,11 @@ int main(void)
     usart_write_str("welcome to avr-uno!\r\n");
     test_pins((uint8_t *)FCK_BAR);
     test_pins((uint8_t *)FKK_BAY);
+    x_ing_letters((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY);
+    _delay_ms(2000);
 
     while(1)
     {
-
-        /* x_ing_letters((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY); */
         for(x = 0; x < LETTERCOUNT; ++x)
         {
             test_pattern[0] = *(FKK_BAY + x);
@@ -325,9 +325,9 @@ int main(void)
         }
         _delay_ms(500);
 
-        soft_pwm_all_red(2000);
+        soft_pwm_all_red(5000);
         _delay_ms(500);
-        soft_pwm_all_red(3000);
+        soft_pwm_all_red(8000);
         _delay_ms(500);
 
         rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
@@ -342,6 +342,12 @@ int main(void)
         _delay_ms(1000);
         reset_all(outpins);
         _delay_ms(1000);
+        soft_pwm_all_red(5000);
+        _delay_ms(500);
+        soft_pwm_all_red(8000);
+        _delay_ms(500);
+
+
     }
 
     return 0;
