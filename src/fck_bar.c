@@ -321,7 +321,7 @@ int main(void)
         for(x = 0; x < LETTERCOUNT; ++x)
         {
             test_pattern[0] = *(FKK_BAY + x);
-            soft_pwm_pattern(test_pattern, 300);
+            soft_pwm_pattern(test_pattern, 100);
         }
         _delay_ms(500);
 
