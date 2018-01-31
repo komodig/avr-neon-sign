@@ -16,6 +16,8 @@
 #define DELAY_MAX 127
 #define LETTER_DONE 0xFF
 
+#define RISE_AND_FALL 7
+
 static const uint8_t FCK_BAR[LETTERCOUNT] = { F_RED, C_RED, K2_RED, B_RED, A_RED, R_RED };
 static const uint8_t FKK_BAY[LETTERCOUNT] = { F_GREEN, K_GREEN, K2_GREEN, B_GREEN, A_GREEN, Y_GREEN };
 
@@ -58,7 +60,62 @@ void my_delay(uint16_t ms)
 }
 
 
-void test_soft_pwm(uint16_t on_time)
+void soft_pwm_pattern(uint8_t *pattern, uint16_t on_time)
+{
+    uint8_t x;
+
+    level = 1;
+    direction = RISE;
+    usart_write_str("soft pwm pattern\r\n");
+    timer_start(PRESCALER);
+
+#ifdef RISE_AND_FALL
+    reset_all_states(outpins);
+#endif
+
+    while(1)
+    {
+        for(x = 0; x < LETTERCOUNT; ++x)
+        {
+            if(*(pattern + x) == '\0')    /* early break for patterns len < LETTERCOUNT */
+                break;
+            else
+                set_letter(pattern + x, outpins, SET_STATE);
+        }
+
+        if(level <= 0)
+        {
+            /* direction = RISE; */
+            for(x = 0; x < LETTERCOUNT; ++x)
+            {
+                if(*(pattern + x) == '\0')    /* early break for patterns len < LETTERCOUNT */
+                    break;
+                else
+                    reset_letter(pattern + x, outpins, SET_STATE);
+            }
+            break;
+        }
+        else if(level >= 0xFF)
+        {
+#ifdef RISE_AND_FALL
+            direction = FALL;
+            my_delay(on_time);
+#else
+            break;
+#endif
+        }
+
+        level += (direction == RISE ? 1 : -1);
+        timer_stop();
+        timer_comparator_set(level);
+        timer_start(PRESCALER);
+        _delay_us(2000);
+    }
+
+    timer_stop();
+}
+
+void soft_pwm_all_red(uint16_t on_time)
 {
     uint8_t x;
 
@@ -109,9 +166,9 @@ void test_pins(uint8_t *pattern)
     usart_write_str("test pins\r\n");
     for(x = 0; x < LETTERCOUNT; x++)
     {
-        set_letter(pattern + x, outpins);
+        set_letter(pattern + x, outpins, SET_PIN);
         _delay_ms(200);
-        reset_letter(pattern + x, outpins);
+        reset_letter(pattern + x, outpins, SET_PIN);
     }
 }
 
@@ -139,13 +196,13 @@ uint16_t random_letter_disfunct(uint8_t *target_pattern, uint16_t rand_val)
         rand_number = my_rand(rand_number);
         rand_delay = ((rand_number % 5) + 1) * 50;
 
-        reset_letter(pattern + rand_pin, outpins);
+        reset_letter(pattern + rand_pin, outpins, SET_PIN);
         my_delay(100);
-        set_letter(pattern + rand_pin, outpins);
+        set_letter(pattern + rand_pin, outpins, SET_PIN);
         my_delay(100);
-        reset_letter(pattern + rand_pin, outpins);
+        reset_letter(pattern + rand_pin, outpins, SET_PIN);
         my_delay(rand_delay * 5);
-        set_letter(pattern + rand_pin, outpins);
+        set_letter(pattern + rand_pin, outpins, SET_PIN);
         my_delay(rand_delay);
     }
 
@@ -181,11 +238,11 @@ void x_ing_letters(uint8_t *from_pattern, uint8_t *to_pattern)
 
     for(x = 0; x < LETTERCOUNT; ++x)
     {
-        set_letter(ptr1, outpins);
-        set_letter(ptr2, outpins);
+        set_letter(ptr1, outpins, SET_PIN);
+        set_letter(ptr2, outpins, SET_PIN);
         _delay_ms(200);
-        reset_letter(ptr1++, outpins);
-        reset_letter(ptr2--, outpins);
+        reset_letter(ptr1++, outpins, SET_PIN);
+        reset_letter(ptr2--, outpins, SET_PIN);
     }
 }
 
@@ -219,8 +276,8 @@ uint16_t letterized_change(uint8_t *from_pattern, uint8_t *to_pattern, uint16_t 
         }
 
         _delay_ms(300);
-        reset_letter(pattern1 + rand_pin, outpins);
-        set_letter(pattern2 + rand_pin, outpins);
+        reset_letter(pattern1 + rand_pin, outpins, SET_PIN);
+        set_letter(pattern2 + rand_pin, outpins, SET_PIN);
     } while(!all_switched(pattern1, rand_pin));
 
     return rand_number;
@@ -231,6 +288,7 @@ int main(void)
 {
     uint8_t x, y, rand_pin;
     uint16_t rand_number = 0xAFFE;
+    uint8_t test_pattern[2] = { A_GREEN, '\0' };
 
     init_output(&outpins[0], PD2, &PORTD, &DDRD, (uint8_t *)&pin_for_letters[0]); // Fr
     init_output(&outpins[1], PD6, &PORTD, &DDRD, (uint8_t *)&pin_for_letters[1]); // Ir
@@ -259,17 +317,23 @@ int main(void)
     while(1)
     {
 
-        x_ing_letters((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY);
-        x_ing_letters((uint8_t *)FKK_BAY, (uint8_t *)FCK_BAR);
-        test_soft_pwm(2000);
+        /* x_ing_letters((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY); */
+        for(x = 0; x < LETTERCOUNT; ++x)
+        {
+            test_pattern[0] = *(FKK_BAY + x);
+            soft_pwm_pattern(test_pattern, 300);
+        }
         _delay_ms(500);
-        test_soft_pwm(3000);
+
+        soft_pwm_all_red(2000);
+        _delay_ms(500);
+        soft_pwm_all_red(3000);
         _delay_ms(500);
 
         rand_number = letterized_change((uint8_t *)FCK_BAR, (uint8_t *)FKK_BAY, rand_number);
         _delay_ms(1000);
         y = my_rand(rand_number);
-        for(x = 0; x < y % 5 + 1; ++x)
+        for(x = 0; x < y % 2 + 1; ++x)
         {
             rand_number = random_letter_disfunct((uint8_t *)FKK_BAY, rand_number);
         }

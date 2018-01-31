@@ -72,7 +72,7 @@ void reset_range(uint8_t start, uint8_t count, pinconf_t *outpins)
 }
 
 
-void set_letter(uint8_t *letter, pinconf_t *outpins)
+void set_letter(uint8_t *letter, pinconf_t *outpins, uint8_t pin_or_state)
 {
     uint8_t x;
 
@@ -80,13 +80,20 @@ void set_letter(uint8_t *letter, pinconf_t *outpins)
     {
         if(is_letter(outpins + x, *letter))
         {
-            set_pin(outpins + x);
+            if(pin_or_state == SET_PIN)
+            {
+                set_pin(outpins + x);
+            }
+            else
+            {
+                set_state(outpins + x);
+            }
         }
     }
 }
 
 
-void reset_letter(uint8_t *letter, pinconf_t *outpins)
+void reset_letter(uint8_t *letter, pinconf_t *outpins, uint8_t pin_or_state)
 {
     uint8_t x;
 
@@ -94,7 +101,14 @@ void reset_letter(uint8_t *letter, pinconf_t *outpins)
     {
         if(is_letter(outpins + x, *letter))
         {
-            reset_pin(outpins + x);
+            if(pin_or_state == SET_PIN)
+            {
+                reset_pin(outpins + x);
+            }
+            else
+            {
+                reset_state(outpins + x);
+            }
         }
     }
 }
@@ -106,7 +120,7 @@ void set_pattern(uint8_t *pattern, pinconf_t *outpins)
 
     for(x = 0; x < LETTERCOUNT; ++x)
     {
-        set_letter(pattern + x, outpins);
+        set_letter(pattern + x, outpins, SET_PIN);
     }
 }
 
@@ -135,6 +149,12 @@ void all_state_to_pins(pinconf_t *outpins)
 void set_state(pinconf_t *pinobj)
 {
     pinobj->state = 1;
+}
+
+
+void reset_state(pinconf_t *pinobj)
+{
+    pinobj->state = 0;
 }
 
 
